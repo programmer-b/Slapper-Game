@@ -25,7 +25,7 @@ Future<void> loadAd() async {
           onAdFailedToLoad: (error) =>
               debugPrint('Ad failed to load: $error ................\n\n')),
       // ca-app-pub-5988017258715205/5600361489
-      adUnitId: 'ca-app-pub-3940256099942544/3419835294',
+      adUnitId: 'ca-app-pub-5988017258715205/5600361489',
       orientation: AppOpenAd.orientationLandscapeLeft,
       request: const AdRequest());
 }

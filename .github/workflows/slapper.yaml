@@ -8,12 +8,12 @@ on:
 
   pull_request:
     branches:
-      # - main
-      - master
+      - main
+      #- master
   push:
     branches:
-      # - main
-      - master
+      - main
+      #- master
       # - develop
 
 jobs:
@@ -32,13 +32,32 @@ jobs:
           java-version: '12.x'
       - uses: subosito/flutter-action@v1
         with:
-          flutter-version: '3.3.0'
+          flutter-version: '3.3.1'
           channel: 'stable'
-      # - run: flutter clean    
+      # - run: flutter clean
+      - name: Install Android Gems
+        working-directory: ${{ github.workspace }}/android
+        run: bundle install
+      - name: Flutter get
+        working-directory: ${{ github.workspace }}
+        run: flutter pub get
       - run: flutter pub get
-
-      - run: flutter build apk
-      - run: flutter build appbundle
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE }}" | base64 --decode > ${{ github.workspace }}/android/app.jks
+      - name: Set up key.properties
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo keyPassword=\${{ secrets.SIGNING_STORE_PASSWORD }} > ${{env.PROPERTIES_PATH}}
+          echo storePassword=\${{ secrets.SIGNING_KEY_PASSWORD }} >> ${{env.PROPERTIES_PATH}}
+          echo keyAlias=\${{ secrets.SIGNING_KEY_ALIAS }} >> ${{env.PROPERTIES_PATH}}
+        env:
+          PROPERTIES_PATH: "${{ github.workspace }}/android/key.properties"
+          
+      - name: build APK
+        working-directory: ${{ github.workspace }}
+        run: flutter build apk
+      - name: buld AppBundle
+        run: flutter build appbundle
       # - run: |
       #     flutter build ios --no-codesign
       #     cd build/ios/iphoneos
@@ -52,7 +71,7 @@ jobs:
         with:
           artifacts: "build/app/outputs/apk/release/app-release.apk,build/app/outputs/bundle/release/app-release.aab"
           tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v3.1.0
         with:
